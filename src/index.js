@@ -1,17 +1,33 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React, { useState } from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/login";
+import MyProfile from "./pages/profile";
+import MyHome from "./pages/home";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+//login page
+const user = {
+  name : "Abid",
+  email : "a@b.c",
+  bio : "this the bio"
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+
+}
+
+function MyApp(){
+  const isLoggedIn = localStorage.getItem("isLoggedIn")
+  console.log(isLoggedIn)
+  return(<div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element= {isLoggedIn==true?(<MyHome/>):(<LoginPage/>)}></Route>
+        <Route path="/profile" element={isLoggedIn==true?(<MyProfile user={user}/>):<LoginPage/>}></Route>
+        <Route path ="login" element={<LoginPage/>}></Route>
+      </Routes>
+    </BrowserRouter>
+    
+    </div>
+  )
+}
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<MyApp />);
