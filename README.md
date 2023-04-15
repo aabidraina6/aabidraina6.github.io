@@ -1,70 +1,203 @@
-# Getting Started with Create React App
+# Structure
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+```
+.
+├── backend
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── package.json
+│   └── ....
+├── docker-compose.yml
+├── frontend
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── package.json
+│   └── ....
+├── nginx
+    └── local.conf
+```
 
-## Available Scripts
+# frontend/Dockerfile:
 
-In the project directory, you can run:
+```
+FROM node:16-alpine
 
-### `npm start`
+# ? install node
+RUN apk add python3 make g++ 
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+# ? creat new user (optional)
+USER node 
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
 
-### `npm test`
+# ? copy package.json and package-lock.json
+COPY --chown=node:node package*.json ./
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# ? ci is exact install ( without upgraded version )
+RUN npm i
 
-### `npm run build`
+# ? first . my PC
+# ? second . docker working dir
+COPY --chown=node:node . ./
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# ? give access to 5000 port of docker
+EXPOSE 3000
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# RUN chmod +x /bin/sh
+# RUN ls -a /bin/
+RUN npm run build
+CMD npx serve -s build -l 3000
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# frontend/.dockerignore:
 
-### `npm run eject`
+```
+node_modules
+build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# backend/Dockerfile:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+FROM node:16-alpine
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# ? install node
+RUN apk add python3 make g++ 
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# ? creat new user (optional)
+USER node 
 
-## Learn More
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# ? copy package.json and package-lock.json
+COPY --chown=node:node package*.json ./
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+# ? ci is exact install ( without upgraded version )
+RUN npm i
 
-### Code Splitting
+# ? first . my PC
+# ? second . docker working dir
+COPY --chown=node:node . ./
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# ? give access to 5000 port of docker
+EXPOSE 5000
 
-### Analyzing the Bundle Size
+# RUN chmod +x /bin/sh
+# RUN ls -a /bin/
+CMD npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# backend/.dcokerignore:
 
-### Making a Progressive Web App
+same as frontend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+# nginx/local.conf:
 
-### Advanced Configuration
+```
+worker_processes  1;
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Deployment
+events {
+    worker_connections  1024;
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+http {
 
-### `npm run build` fails to minify
+    upstream backend_server {
+        server backend:5000;
+    }
+  
+    upstream frontend_server {
+        server frontend:3000;
+    }
+  
+    server {
+        listen 8080;
+        server_name localhost;
+        client_max_body_size 8M;
+  
+        location /api/ {
+            proxy_pass http://backend_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+  
+        location / {
+            proxy_pass http://frontend_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+  
+        location /socket.io/ {
+            proxy_pass http://backend_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+}
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# docker-compose.yml:
+
+```yaml
+version: '3.1'
+
+services:
+    backend:
+      build: ./backend
+      environment:
+        - PORT=5000
+      restart: unless-stopped
+      networks:
+        - web-network
+
+
+    frontend:
+      build: ./frontend
+      environment:
+        - PORT=3000
+      networks:
+        - web-network
+    nginx:
+      image: nginx
+      container_name: webserver
+      restart: unless-stopped
+      depends_on:
+        - backend
+        - frontend
+      ports:
+        - 8080:8080
+      volumes:
+        - ./nginx/local.conf:/etc/nginx/nginx.conf
+      networks:
+        - web-network
+
+networks:
+  web-network:
+    driver: bridge
+```
+
+# How to run:
+
+to build (have to do whenever you update your files) :
+
+```bash
+sudo docker-compose build
+```
+
+to start:
+
+```bash
+sudo docker-compose up
+```
+
+to stop:
+
+```bash
+sudo docker-compose down
+```

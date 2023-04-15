@@ -1,9 +1,17 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  useNavigate,
+  BrowserRouter,
+  Router,
+  Routes,
+  Route,
+  Link,
+} from "react-router-dom";
 import LoginPage from "./pages/login";
 import MyProfile from "./pages/profile";
 import MyHome from "./pages/home";
+import ProtectedRoute from "./components/protectedRoute";
 
 //login page
 const user = {
@@ -14,105 +22,107 @@ const user = {
   Age: 111,
   "Contact Number": 434324324234324,
 };
-const followingList = ["Kaydence Adams",
-"Erika Wilcox",
-"Yareli Werner",
-"Sylvia Khan",
-"Cash Larson",
-"Kendall Day",
-"Raegan Oneill",
-"Nigel Hall",
-"Jalen Marquez",
-"Naomi Mueller",
-"Katelynn Key",
-"Jayda Mcdowell",
-"Roberto Caldwell",
-"Leticia Park",
-"Carter Price",
-"Josiah Henson",
-"Lilah Schneider",
-"Kenley Hancock",
-"Miley Gilmore",
-"Joy Clements",
-"Jamari Small",
-"Eliana Curry",
-"Pierce Guzman",
-"Helen Chambers",
-"Enzo Swanson",
-"Anabella Armstrong",
-"Reed Cain",
-"Reilly Joseph",
-"Jefferson Holloway",
-"Bruno Jarvis",
-"Harrison Flores",
-"Leandro Lozano",
-"Leandro Terry",
-"George Garrison",
-"Marie Gay",
-"Marley Owen",
-"Shannon Boyd",
-"Karma Willis",
-"Braiden Osborn",
-"Reagan Bryant",
-"Raegan Mcdonald",
-"Juliana Long",
-"Mina Weiss",
-"Sharon Fry",
-"Kristina Russell",
-"Kaiya Cummings",
-"Abril Eaton",
-"Broderick Rasmussen",
-"Solomon Bradshaw",
-"Ramiro Hooper",
-"Adison Kelley",
-"Braiden Murphy",
-"Lina York",
-"Joseph Davidson",
-"Ireland Fletcher",
-"Lindsey Brady",
-"Ashlee Bean",
-"Abigayle Durham",
-"Kaden Leach",
-"Tatum Stark",
-"Royce Gentry",
-"Jordyn Holmes",
-"Enrique Ray",
-"Zack Blackwell",
-"Rhett Shepard",
-"Makayla Levine",
-"Paula Flynn",
-"Cristopher Mcclain",
-"Lia Pugh",
-"Rosemary Erickson",
-"Jaydan Blackburn",
-"Carl Schultz",
-"Ciara Greer",
-"Royce Cooke",
-"Evelyn Mcconnell",
-"Rodolfo Haley",
-"Gemma Stephens",
-"Iyana Adams",
-"Troy Mclaughlin",
-"Isaac Archer",
-"Rocco Rodgers",
-"Amiyah Woodward",
-"Christine Hebert",
-"Nyasia Hodge",
-"Laura Ferrell",
-"Devin Olsen",
-"Kennedi Bullock",
-"Kendrick Gutierrez",
-"Bryce Whitaker",
-"Jordan Romero",
-"Jessie Lowe",
-"Maia Wallace",
-"Weston Rasmussen",
-"Perla Ward",
-"Heidi Nichols",
-"Trevin Pollard",
-"Aniyah Brandt",
-"Karly Acevedo",
-"Emilia Stevenson",]
+const followingList = [
+  "Kaydence Adams",
+  "Erika Wilcox",
+  "Yareli Werner",
+  "Sylvia Khan",
+  "Cash Larson",
+  "Kendall Day",
+  "Raegan Oneill",
+  "Nigel Hall",
+  "Jalen Marquez",
+  "Naomi Mueller",
+  "Katelynn Key",
+  "Jayda Mcdowell",
+  "Roberto Caldwell",
+  "Leticia Park",
+  "Carter Price",
+  "Josiah Henson",
+  "Lilah Schneider",
+  "Kenley Hancock",
+  "Miley Gilmore",
+  "Joy Clements",
+  "Jamari Small",
+  "Eliana Curry",
+  "Pierce Guzman",
+  "Helen Chambers",
+  "Enzo Swanson",
+  "Anabella Armstrong",
+  "Reed Cain",
+  "Reilly Joseph",
+  "Jefferson Holloway",
+  "Bruno Jarvis",
+  "Harrison Flores",
+  "Leandro Lozano",
+  "Leandro Terry",
+  "George Garrison",
+  "Marie Gay",
+  "Marley Owen",
+  "Shannon Boyd",
+  "Karma Willis",
+  "Braiden Osborn",
+  "Reagan Bryant",
+  "Raegan Mcdonald",
+  "Juliana Long",
+  "Mina Weiss",
+  "Sharon Fry",
+  "Kristina Russell",
+  "Kaiya Cummings",
+  "Abril Eaton",
+  "Broderick Rasmussen",
+  "Solomon Bradshaw",
+  "Ramiro Hooper",
+  "Adison Kelley",
+  "Braiden Murphy",
+  "Lina York",
+  "Joseph Davidson",
+  "Ireland Fletcher",
+  "Lindsey Brady",
+  "Ashlee Bean",
+  "Abigayle Durham",
+  "Kaden Leach",
+  "Tatum Stark",
+  "Royce Gentry",
+  "Jordyn Holmes",
+  "Enrique Ray",
+  "Zack Blackwell",
+  "Rhett Shepard",
+  "Makayla Levine",
+  "Paula Flynn",
+  "Cristopher Mcclain",
+  "Lia Pugh",
+  "Rosemary Erickson",
+  "Jaydan Blackburn",
+  "Carl Schultz",
+  "Ciara Greer",
+  "Royce Cooke",
+  "Evelyn Mcconnell",
+  "Rodolfo Haley",
+  "Gemma Stephens",
+  "Iyana Adams",
+  "Troy Mclaughlin",
+  "Isaac Archer",
+  "Rocco Rodgers",
+  "Amiyah Woodward",
+  "Christine Hebert",
+  "Nyasia Hodge",
+  "Laura Ferrell",
+  "Devin Olsen",
+  "Kennedi Bullock",
+  "Kendrick Gutierrez",
+  "Bryce Whitaker",
+  "Jordan Romero",
+  "Jessie Lowe",
+  "Maia Wallace",
+  "Weston Rasmussen",
+  "Perla Ward",
+  "Heidi Nichols",
+  "Trevin Pollard",
+  "Aniyah Brandt",
+  "Karly Acevedo",
+  "Emilia Stevenson",
+];
 const followerList = [
   "Josie Lang",
   "Austin Hood",
@@ -239,39 +249,33 @@ const followerList = [
   "Madden Simpson",
 ];
 
-function MyApp() {
-  const isLoggedIn = localStorage.getItem("isLoggedIn");
-  console.log(isLoggedIn);
-  console.log(typeof isLoggedIn);
-
-  //TODO: localStorage.getItem
+function MyOldApp() {
   return (
     <div>
-      <BrowserRouter>
-        <Routes>
-          <Route
-            exact
-            path="/"
-            element={
-              isLoggedIn == "true" ? <MyHome /> : <Navigate to="/login" />
-            }
-          ></Route>
-          <Route
-            exact
-            path="/profile"
-            element={
-              isLoggedIn == "true" ? (
-                <MyProfile user={user} followers = {followerList} following ={followingList} />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          ></Route>
-          <Route exact path="login" element={<LoginPage />}></Route>
-        </Routes>
-      </BrowserRouter>
+      <div>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<ProtectedRoute />}>
+              <Route exact path="/" element={<MyHome />}></Route>
+              <Route
+                exact
+                path="/profile"
+                element={
+                  <MyProfile
+                    user={user}
+                    followers={followerList}
+                    following={followingList}
+                  />
+                }
+              ></Route>
+            </Route>
+            <Route exact path="login" element={<LoginPage />}></Route>
+          </Routes>
+        </BrowserRouter>
+      </div>
     </div>
   );
 }
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<MyApp />);
+root.render(<MyOldApp />);

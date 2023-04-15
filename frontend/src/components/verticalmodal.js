@@ -13,9 +13,12 @@ export default function MyVerticallyCenteredModal(props) {
     backgroundColor:" #bbb",
     margin: "10px",
     padding:" 10px"}
+
+
   return (
   
     <Modal
+
       {...props}
       scrollable={true}
       size="md"
@@ -25,7 +28,7 @@ export default function MyVerticallyCenteredModal(props) {
     >
       <Modal.Header closeButton >
         <Modal.Title id="contained-modal-title-vcenter">
-          {props.isFollowers?"Followers":"Following"}
+          {props.isfollowers?"Followers":"Following"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -33,7 +36,7 @@ export default function MyVerticallyCenteredModal(props) {
             <Row>
               <Col >
                 <div>
-                <ImageAndTextExample nameList={props.nameList} isFollowers={props.isFollowers}></ImageAndTextExample>
+                <ImageAndTextExample userdata = {props.userdata} nameList={props.nameList} isfollowers={props.isfollowers}></ImageAndTextExample>
                 </div>
                
                 </Col>
